@@ -1,0 +1,23 @@
+{
+    "name": "cb-master/laika-router",
+    "description": "Laika PHP Url Router",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "CbMaster\\LaikaRouter\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "cb-master",
+            "email": "strblackhawk@gmail.com"
+        },
+        {
+            "name":"Showket Ahmed",
+            "email":"riyadhtayf@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
