@@ -20,12 +20,18 @@ class Url
         return '/' . trim($uri, '/');
     }
 
+    public static function normalizeFallbackKey(?string $key): string
+    {
+        $key = self::normalize((string) $key);
+        return ($key === "/") ? "/" : "{$key}/";
+    }
+
     public static function method(): string
     {
         return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
     }
 
-    public static function matchRequestRoute(string $requestUrl): array
+    public static function matchRequestRoute(?string $requestUrl): array
     {
         // Get Routes by Request Method
         $routes = Handler::getOnlyRoutes(self::method()) ?? null;
@@ -35,9 +41,7 @@ class Url
                 'params'    =>  []
             ];
         }
-
-        // Normalize Url
-        $requestUrl = self::normalize($requestUrl);
+        
         // Convert route placeholders to regex patterns
         foreach ($routes as $route) {
             $pattern = preg_replace_callback(
@@ -70,7 +74,7 @@ class Url
 
     public static function request(?string $requestUrl = null): string
     {
-        if (!$requestUrl) {
+        if ($requestUrl === null) {
             $requestUrl = ($_SERVER['REQUEST_URI'] ?? '/');
         }
 

@@ -13,57 +13,57 @@ declare(strict_types=1);
 
 namespace Laika\Router\Helper;
 
+use Closure;
+use RuntimeException;
+
 class Dispatcher
 {
     public static function dispatch(?string $requestUrl = null)
     {
+        $requestUrl = Url::request($requestUrl);
         $res = Url::matchRequestRoute($requestUrl);
-        echo '<pre>';
-        print_r(Handler::getFallbacks());
-        // print_r($res);
-        // $params = $matched['params'] ?? [];
 
-        // $controllerInvoker = function($params) use ($matched) {
-        //     $controller = new $matched['controller']();
-        //     return call_user_func_array([$controller, $matched['method']], $params);
-        // };
+        $params = $res['params'];
 
-        // // Collect before middlewares in order
-        // $beforeMiddlewares = array_merge(
-        //     $matched['middlewares']['global'],
-        //     $matched['middlewares']['group'],
-        //     $matched['middlewares']['route']
-        // );
+        // Execute Fallback For Invalid Route
+        if ($res['route'] === null) {
 
-        // // Run before middlewares + controller
-        // $response = $this->runMiddlewares($beforeMiddlewares, $params, $controllerInvoker);
+            // 404 Response
+            http_response_code(404);
 
-        // // Now run afterwares in order global -> group -> route
-        // foreach (['global', 'group', 'route'] as $level) {
-        //     foreach ($matched['afterwares'][$level] ?? [] as $afterware) {
-        //         $instance = new $afterware();
-        //         if (method_exists($instance, 'handle')) {
-        //             $response = $instance->handle($params, fn() => $response);
-        //         }
-        //     }
-        // }
+            $fallbacks = Handler::getFallbacks();
 
-        // return $response;
-    }
-
-    protected function runMiddlewares(array $middlewares, array $params, callable $controllerInvoker)
-    {
-        $next = $controllerInvoker;
-
-        // Reverse order so the first middleware wraps the next
-        foreach (array_reverse($middlewares) as $middleware) {
-            $next = function($params) use ($middleware, $next) {
-                $instance = new $middleware();
-                return $instance->handle($params, $next);
-            };
+            foreach (array_reverse($fallbacks) as $key => $callable){
+                if (str_starts_with(Url::normalizeFallbackKey($requestUrl), $key)) {
+                    return Invoke::controller($callable, $params);
+                }
+            }
+            /*---- Execute Fallback ----*/
+            return _404::show();
         }
 
-        // Execute the first one
-        return $next($params);
+        $routes = Handler::getRoutes(Url::method());
+        $route = $routes[$res['route']];
+        
+        // $invoker = self::invoke($route['controller'], $params);
+
+        // Collect before middlewares in order
+        $middlewares = array_merge(
+            $route['middlewares']['global'],
+            $route['middlewares']['group'],
+            $route['middlewares']['route']
+        );
+
+        // Run Middlewares -> Controller
+        $response = Invoke::middleware($middlewares, $route['controller'], $params);
+
+        // Run Afterware
+        $afterwares = array_merge(
+            $route['afterwares']['global'],
+            $route['afterwares']['group'],
+            $route['afterwares']['route']
+        );
+
+        echo Invoke::afterware($afterwares, $response, $params);
     }
 }

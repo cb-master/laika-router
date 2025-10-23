@@ -72,16 +72,16 @@ class Handler
         // call user callback (allows Http::get() calls inside)
         $callback();
 
-        // Reset Group Middleware/Afterwares
+        // Reset Group, Middleware & Afterwares
+        self::$group = '';
         self::$groupMiddlewares = [];
         self::$groupAfterwares = [];
         return;
     }
 
-    public static function registerFallback(callable|string|array|null|object $callable = null, string $group = '/'): void
+    public static function registerFallback(callable|string|array|null|object $callable = null, ?string $group = null): void
     {
-        $group = Url::normalize($group);
-        $group = $group === '/' ? '/' : "{$group}/";
+        $group = Url::normalizeFallbackKey($group);
         self::$fallbacks[$group] = $callable;
         return;
     }
