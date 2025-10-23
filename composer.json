@@ -5,7 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "CbMaster\\LaikaRouter\\": "src/"
+            "Laika\\Router\\": "src/"
         }
     },
     "authors": [
