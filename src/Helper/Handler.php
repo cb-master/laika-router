@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Laika\Router\Helper;
 
+use RuntimeException;
+
 class Handler
 {
     private static string $group = '';
@@ -152,11 +154,11 @@ class Handler
 
     public static function name(string $name): void
     {
+        if (isset(self::$namedRoutes[$name])) {
+            throw new RuntimeException("Name Route '{$name}' Already Exists!");
+        }
         self::$routes[self::$lastMethod][self::$lastUri]['name'] = $name;
-        self::$namedRoutes[$name] = [
-            'method'    =>  self::$lastMethod,
-            'uri'       =>  self::$lastUri
-        ];
+        self::$namedRoutes[$name] = self::$lastUri;
         return;
     }
 
@@ -167,7 +169,7 @@ class Handler
             return '';
         }
 
-        $uri = $namedRoutes[$name]['uri'];
+        $uri = $namedRoutes[$name];
 
         // Replace {param} placeholders
         foreach ($params as $key => $value) {

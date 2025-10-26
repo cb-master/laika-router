@@ -64,6 +64,6 @@ class Dispatcher
             $route['afterwares']['route']
         );
 
-        echo Invoke::afterware($afterwares, $response, $params);
+        echo empty($afterwares) ? $response : Invoke::afterware($afterwares, $response, $params);
     }
 }
